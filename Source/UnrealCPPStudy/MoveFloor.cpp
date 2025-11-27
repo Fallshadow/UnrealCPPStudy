@@ -24,7 +24,7 @@ void AMoveFloor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	nowDistance = FVector::Dist(FloorPosStart, FloorPosEnd);
-	MoveFloor(DeltaTime);
+	
 	if (nowDistance >= TargetDistance) {
 
 		FVector dir = Velocity.GetSafeNormal();
@@ -35,6 +35,11 @@ void AMoveFloor::Tick(float DeltaTime)
 		
 		Velocity = -Velocity;
 	}
+	else {
+		MoveFloor(DeltaTime);
+	}
+
+	RotateFloor(DeltaTime);
 }
 
 void AMoveFloor::MoveFloor(float DeltaTime)
@@ -42,4 +47,9 @@ void AMoveFloor::MoveFloor(float DeltaTime)
 	FloorPosEnd = GetActorLocation();
 	FloorPosEnd = FloorPosEnd + Velocity * DeltaTime;
 	SetActorLocation(FloorPosEnd);
+}
+
+void AMoveFloor::RotateFloor(float DeltaTime) {
+	FRotator rotator = RotatorVelocity * DeltaTime;
+	AddActorLocalRotation(rotator);
 }

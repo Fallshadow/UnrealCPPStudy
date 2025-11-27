@@ -26,6 +26,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	FVector Velocity;
 	UPROPERTY(EditAnywhere)
+	FRotator RotatorVelocity;
+	UPROPERTY(EditAnywhere)
 	float TargetDistance = 300.0f;
 private:
 	FVector FloorPosTemp;
@@ -36,4 +38,5 @@ private:
 
 
 	void MoveFloor(float DeltaTime);
+	void RotateFloor(float DeltaTime);
 };
