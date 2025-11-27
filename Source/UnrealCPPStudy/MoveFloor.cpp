@@ -15,15 +15,31 @@ AMoveFloor::AMoveFloor()
 void AMoveFloor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	FloorPosStart = GetActorLocation();
 }
 
 // Called every frame
 void AMoveFloor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	FloorPosTemp = GetActorLocation();
-	FloorPosTemp = FloorPosTemp + Velocity * DeltaTime;
-	SetActorLocation(FloorPosTemp);
+	nowDistance = FVector::Dist(FloorPosStart, FloorPosEnd);
+	MoveFloor(DeltaTime);
+	if (nowDistance >= TargetDistance) {
+
+		FVector dir = Velocity.GetSafeNormal();
+		FloorPosStart = FloorPosStart + dir * TargetDistance;
+		SetActorLocation(FloorPosStart);
+
+		UE_LOG(LogTemp, Display, TEXT("Now Set %s : %f %f %f"), *(GetName()), FloorPosStart.X, FloorPosStart.Y, FloorPosStart.Z);
+		
+		Velocity = -Velocity;
+	}
 }
 
+void AMoveFloor::MoveFloor(float DeltaTime)
+{ 
+	FloorPosEnd = GetActorLocation();
+	FloorPosEnd = FloorPosEnd + Velocity * DeltaTime;
+	SetActorLocation(FloorPosEnd);
+}

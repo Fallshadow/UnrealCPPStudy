@@ -25,7 +25,15 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	FVector Velocity;
-
+	UPROPERTY(EditAnywhere)
+	float TargetDistance = 300.0f;
 private:
 	FVector FloorPosTemp;
+	FVector FloorPosStart;
+	FVector FloorPosEnd;
+
+	float nowDistance;
+
+
+	void MoveFloor(float DeltaTime);
 };
