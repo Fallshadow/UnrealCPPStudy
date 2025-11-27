@@ -24,5 +24,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere)
-	FVector MovePos;
+	FVector Velocity;
+
+private:
+	FVector FloorPosTemp;
 };

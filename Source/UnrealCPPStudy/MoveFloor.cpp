@@ -22,8 +22,8 @@ void AMoveFloor::BeginPlay()
 void AMoveFloor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	MovePos.X = MovePos.X + 1;
-	SetActorLocation(MovePos);
+	FloorPosTemp = GetActorLocation();
+	FloorPosTemp = FloorPosTemp + Velocity * DeltaTime;
+	SetActorLocation(FloorPosTemp);
 }
 
