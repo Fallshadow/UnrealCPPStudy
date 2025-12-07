@@ -28,18 +28,18 @@ void UBFL_CreateBP::GeneratePlanesBlueprint(const FString& FBXPath, const FStrin
 
     for (int32 MeshIndex = 0; MeshIndex < meshArray.Num(); MeshIndex++) {
         const FParsedMeshData& MeshData = meshArray[MeshIndex]; // 取当前网格数据（const&避免拷贝）
-        UBlueprint* NewBP = UBFL_CreateBP::CreatePlanesBlueprint(
-            AssetPath + TEXT("_") + MeshData.MeshName, MeshData.CenterPoints, PlaneMesh
-        );
+        //UBlueprint* NewBP = UBFL_CreateBP::CreatePlanesBlueprint(
+        //    AssetPath + TEXT("_") + MeshData.MeshName, MeshData.CenterPoints, PlaneMesh
+        //);
 
-        //if (MeshData.MeshName == "RW15_EdgeLights") {
-        //    UE_LOG(LogTemp, Log, TEXT("===== 找到跑道 15 边灯 ====="));
+        if (MeshData.MeshName == "RW15_EdgeLights") {
+            UE_LOG(LogTemp, Log, TEXT("===== 找到跑道 15 边灯 ====="));
 
-        //    UBlueprint* NewBP = UBFL_CreateBP::CreatePlanesBlueprint(
-        //        AssetPath + TEXT("_") + MeshData.MeshName, MeshData.CenterPoints, PlaneMesh
-        //    );
-        //    break;
-        //}
+            UBlueprint* NewBP = UBFL_CreateBP::CreatePlanesBlueprint(
+                AssetPath + TEXT("_") + MeshData.MeshName, MeshData.CenterPoints, PlaneMesh
+            );
+            break;
+        }
 
         //UBlueprint* NewBP = UBFL_CreateBP::CreatePlanesBlueprint(
         //    AssetPath + TEXT("_") + FString::FromInt(MeshIndex), MeshData.CenterPoints, PlaneMesh
