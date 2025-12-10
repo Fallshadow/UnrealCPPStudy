@@ -9,8 +9,7 @@ public class UnrealCPPStudy : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", 
-			// 使用 GameplayMessageSubsystem 所需
-            "ModularGameplay",
+            "GameplayMessageRuntime",
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

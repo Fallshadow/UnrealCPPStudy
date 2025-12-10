@@ -3,7 +3,7 @@
 
 #include "S_UGameplayMessageSubsystem/RunwayLightActor.h"
 #include "S_UGameplayMessageSubsystem/GameMessage.h"
-// #include "GameplayMessageSubsystem.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 
 // Sets default values
 ARunwayLightActor::ARunwayLightActor()
