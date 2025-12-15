@@ -20,6 +20,15 @@ void ARunwayLightActor::SetIntensity(int32 value)
 	//	TEXT("Game.Player.ScoreChanged"), // 频道名，可以改成你喜欢的
 	//	Msg
 	//);
+
+	FRunWayLightIntensityChangedMessage rwLightIntensityM;
+	rwLightIntensityM.RunWay = "15";
+	rwLightIntensityM.Intensity = value;
+
+	static const FGameplayTag rwLightIntensityChangeTag = FGameplayTag::RequestGameplayTag(TEXT("Game.RWLightIntensityChange"));
+
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage
+		<FRunWayLightIntensityChangedMessage>(rwLightIntensityChangeTag, rwLightIntensityM);
 }
 
 // Called when the game starts or when spawned
@@ -27,6 +36,8 @@ void ARunwayLightActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
+
+	SetIntensity(1);
 }
 
 // Called every frame

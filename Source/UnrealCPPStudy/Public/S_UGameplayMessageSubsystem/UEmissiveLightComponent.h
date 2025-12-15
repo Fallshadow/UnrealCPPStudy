@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "UnrealCPPStudy/Public/S_UGameplayMessageSubsystem/GameMessage.h"
 #include "UEmissiveLightComponent.generated.h"
 
 
@@ -24,5 +25,5 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-		
+	void OnLightIntensityChanged(FGameplayTag LightIntensityTag, const FRunWayLightIntensityChangedMessage& MessageData);
 };

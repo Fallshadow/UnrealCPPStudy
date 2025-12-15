@@ -2,6 +2,9 @@
 
 
 #include "S_UGameplayMessageSubsystem/UEmissiveLightComponent.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+
+FGameplayMessageListenerHandle ScoreListenerHandle;
 
 // Sets default values for this component's properties
 UUEmissiveLightComponent::UUEmissiveLightComponent()
@@ -19,6 +22,14 @@ void UUEmissiveLightComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	static const FGameplayTag ChannelTag = FGameplayTag::RequestGameplayTag(TEXT("Game.RWLightIntensityChange"));
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
+	ScoreListenerHandle = MessageSubsystem.RegisterListener<FRunWayLightIntensityChangedMessage>(
+		ChannelTag,
+		this,
+		&UUEmissiveLightComponent::OnLightIntensityChanged
+	);
+
 	// ...
 	
 }
@@ -30,5 +41,11 @@ void UUEmissiveLightComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void UUEmissiveLightComponent::OnLightIntensityChanged(FGameplayTag LightIntensityTag, const FRunWayLightIntensityChangedMessage& MessageData) 
+{ 
+	UE_LOG(LogTemp, Display, TEXT("LightIntensityChange£º%s %d"), *MessageData.RunWay, MessageData.Intensity);
+	
 }
 
