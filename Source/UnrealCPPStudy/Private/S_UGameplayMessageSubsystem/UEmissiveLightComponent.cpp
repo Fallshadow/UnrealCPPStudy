@@ -45,7 +45,7 @@ void UUEmissiveLightComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 void UUEmissiveLightComponent::OnLightIntensityChanged(FGameplayTag LightIntensityTag, const FRunWayLightIntensityChangedMessage& MessageData) 
 { 
-	UE_LOG(LogTemp, Display, TEXT("LightIntensityChange£º%s %d"), *MessageData.RunWay, MessageData.Intensity);
+	UE_LOG(LogTemp, Display, TEXT("LightIntensityChange %s %d"), *MessageData.RunWay, MessageData.Intensity);
 	
 }
 
