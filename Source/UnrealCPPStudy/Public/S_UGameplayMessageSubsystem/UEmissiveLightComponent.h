@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "UnrealCPPStudy/Public/S_UGameplayMessageSubsystem/GameMessage.h"
+#include "GameplayTagContainer.h"
 #include "UEmissiveLightComponent.generated.h"
 
 

@@ -10,6 +10,7 @@ public class UnrealCPPStudy : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", 
             "GameplayMessageRuntime",
+             "GameplayTags", 
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
