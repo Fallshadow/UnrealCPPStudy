@@ -22,7 +22,7 @@ void UUEmissiveLightComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	static const FGameplayTag ChannelTag = FGameplayTag::RequestGameplayTag(TEXT("Game.RWLightIntensityChange"));
+	static const FGameplayTag ChannelTag = FGameplayTag::RequestGameplayTag(TEXT("AirportLight.Intensity"));
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
 	ScoreListenerHandle = MessageSubsystem.RegisterListener<FRunWayLightIntensityChangedMessage>(
 		ChannelTag,

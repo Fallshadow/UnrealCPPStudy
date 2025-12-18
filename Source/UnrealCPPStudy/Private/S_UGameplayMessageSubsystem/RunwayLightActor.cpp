@@ -25,7 +25,7 @@ void ARunwayLightActor::SetIntensity(int32 value)
 	rwLightIntensityM.RunWay = "15";
 	rwLightIntensityM.Intensity = value;
 
-	static const FGameplayTag rwLightIntensityChangeTag = FGameplayTag::RequestGameplayTag(TEXT("Game.RWLightIntensityChange"));
+	static const FGameplayTag rwLightIntensityChangeTag = FGameplayTag::RequestGameplayTag(TEXT("AirportLight.Intensity"));
 
 	UGameplayMessageSubsystem::Get(this).BroadcastMessage
 		<FRunWayLightIntensityChangedMessage>(rwLightIntensityChangeTag, rwLightIntensityM);
@@ -37,7 +37,7 @@ void ARunwayLightActor::BeginPlay()
 	Super::BeginPlay();
 	
 
-	SetIntensity(1);
+	SetIntensity(CurIntensity);
 }
 
 // Called every frame
@@ -45,5 +45,11 @@ void ARunwayLightActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	TimeAcc += DeltaTime;
+	if (TimeAcc >= TimeTick) {
+		TimeAcc = 0;
+		CurIntensity++;
+		SetIntensity(CurIntensity);
+	}
 }
 

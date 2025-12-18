@@ -26,4 +26,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	int CurIntensity = 1;
+	float TimeAcc = 0.0f;
+	float TimeTick = 2.0f;
 };
