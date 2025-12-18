@@ -22,7 +22,7 @@
 
 
 
-void UBFL_CreateBP::GeneratePlanesBlueprint(const FString& FBXPath, const FString& AssetPath, UStaticMesh* PlaneMesh)
+void UBFL_CreateBP::GeneratePlanesBlueprint(const FString& FBXPath, const FString& AssetPath, UStaticMesh* TarMesh)
 {
     TArray<FParsedMeshData> meshArray = UFBXParserLibrary::ParseFBXFile(FBXPath);
 
@@ -36,7 +36,7 @@ void UBFL_CreateBP::GeneratePlanesBlueprint(const FString& FBXPath, const FStrin
             UE_LOG(LogTemp, Log, TEXT("===== 找到跑道 15 边灯 ====="));
 
             UBlueprint* NewBP = UBFL_CreateBP::CreatePlanesBlueprint(
-                AssetPath + TEXT("_") + MeshData.MeshName, MeshData.CenterPoints, PlaneMesh
+                AssetPath + TEXT("_") + MeshData.MeshName, MeshData.CenterPoints, TarMesh
             );
             break;
         }
@@ -47,11 +47,11 @@ void UBFL_CreateBP::GeneratePlanesBlueprint(const FString& FBXPath, const FStrin
     }
 }
 
-UBlueprint* UBFL_CreateBP::CreatePlanesBlueprint(const FString& AssetPath, const TArray<FVector>& CenterPoints, UStaticMesh* PlaneMesh)
+UBlueprint* UBFL_CreateBP::CreatePlanesBlueprint(const FString& AssetPath, const TArray<FVector>& CenterPoints, UStaticMesh* TarMesh)
 {
 #if WITH_EDITOR
 
-    if (!PlaneMesh) {
+    if (!TarMesh) {
         UE_LOG(LogTemp, Error, TEXT("CreatePlanesBlueprintAsset: PlaneMesh is null"));
         return nullptr;
     }
@@ -150,7 +150,7 @@ UBlueprint* UBFL_CreateBP::CreatePlanesBlueprint(const FString& AssetPath, const
         RootNode->AddChildNode(PlaneNode);
 
         if (UStaticMeshComponent* PlaneTemplate = Cast<UStaticMeshComponent>(PlaneNode->ComponentTemplate)) {
-            PlaneTemplate->SetStaticMesh(PlaneMesh);
+            PlaneTemplate->SetStaticMesh(TarMesh);
             PlaneTemplate->SetMobility(EComponentMobility::Static);
             PlaneTemplate->SetRelativeLocation(Loc);
         }
