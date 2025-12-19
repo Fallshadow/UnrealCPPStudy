@@ -22,7 +22,7 @@
 
 
 
-void UBFL_CreateBP::GeneratePlanesBlueprint(const FString& FBXPath, const FString& AssetPath, UStaticMesh* TarMesh)
+void UBFL_CreateBP::GeneratePlanesBlueprint(const FString& FBXPath, const FString& AssetPath, UStaticMesh* TarMesh, UMaterialInterface* TarMaterial)
 {
     TArray<FParsedMeshData> meshArray = UFBXParserLibrary::ParseFBXFile(FBXPath);
 
@@ -36,7 +36,7 @@ void UBFL_CreateBP::GeneratePlanesBlueprint(const FString& FBXPath, const FStrin
             UE_LOG(LogTemp, Log, TEXT("===== 找到跑道 15 边灯 ====="));
 
             UBlueprint* NewBP = UBFL_CreateBP::CreatePlanesBlueprint(
-                AssetPath + TEXT("_") + MeshData.MeshName, MeshData.CenterPoints, TarMesh
+                AssetPath + TEXT("_") + MeshData.MeshName, MeshData.CenterPoints, TarMesh, TarMaterial
             );
             break;
         }
@@ -47,7 +47,7 @@ void UBFL_CreateBP::GeneratePlanesBlueprint(const FString& FBXPath, const FStrin
     }
 }
 
-UBlueprint* UBFL_CreateBP::CreatePlanesBlueprint(const FString& AssetPath, const TArray<FVector>& CenterPoints, UStaticMesh* TarMesh)
+UBlueprint* UBFL_CreateBP::CreatePlanesBlueprint(const FString& AssetPath, const TArray<FVector>& CenterPoints, UStaticMesh* TarMesh, UMaterialInterface* TarMaterial)
 {
 #if WITH_EDITOR
 
@@ -73,38 +73,77 @@ UBlueprint* UBFL_CreateBP::CreatePlanesBlueprint(const FString& AssetPath, const
         return nullptr;
     }
 
-    // 1. 如果有旧资产，先卸载/销毁，避免部分加载
-    UObject* ExistingObj = StaticFindObject(UObject::StaticClass(), /*Outer=*/nullptr, *PackageName);
-    if (ExistingObj) {
-        UPackage* ExistingPackage = ExistingObj->GetOutermost();
-        if (ExistingPackage && ExistingPackage->IsFullyLoaded() == false) {
-            // 强制完全加载一次，避免 partial
-            ExistingPackage->FullyLoad();
-        }
+    // PackageName 形如 "/Game/AutoBP/BP_Planes"
+// AssetName   形如 "BP_Planes"
 
-        // 这里简单粗暴：删除旧资产（你也可以选择在原资产上修改 SCS）
-        ExistingObj->ClearFlags(RF_Public | RF_Standalone);
-        ExistingObj->MarkAsGarbage();
-    }
-
-    // 2. 创建新的 Package
-    UPackage* Package = CreatePackage(*PackageName);
+// 1. 创建或加载 Package
+    UPackage* Package = FindPackage(nullptr, *PackageName);
     if (!Package) {
-        UE_LOG(LogTemp, Error, TEXT("Failed to create package %s"), *PackageName);
+        Package = CreatePackage(*PackageName);
+    }
+    if (!Package) {
+        UE_LOG(LogTemp, Error, TEXT("Failed to create/find package %s"), *PackageName);
         return nullptr;
     }
-    Package->FullyLoad(); // 确保是 fully loaded
+    Package->FullyLoad();
 
-    // 3. 创建 Actor 蓝图
-    UBlueprint* NewBP = FKismetEditorUtilities::CreateBlueprint(
-        AActor::StaticClass(),
-        Package,
-        *AssetName,
-        EBlueprintType::BPTYPE_Normal,
-        UBlueprint::StaticClass(),
-        UBlueprintGeneratedClass::StaticClass(),
-        FName("MyPlaneBlueprintCreation")
-    );
+    // 2. 尝试在 Package 里查找已有的 Blueprint
+    UBlueprint* NewBP = FindObject<UBlueprint>(Package, *AssetName);
+
+    if (!NewBP) {
+        // 3. 只有在确实不存在时才创建新的 Blueprint
+        NewBP = FKismetEditorUtilities::CreateBlueprint(
+            AActor::StaticClass(),
+            Package,
+            *AssetName,
+            EBlueprintType::BPTYPE_Normal,
+            UBlueprint::StaticClass(),
+            UBlueprintGeneratedClass::StaticClass(),
+            FName("MyPlaneBlueprintCreation")
+        );
+    }
+    else {
+        UE_LOG(LogTemp, Log, TEXT("Reusing existing Blueprint: %s"), *NewBP->GetPathName());
+    }
+
+    // 从这里开始，对 NewBP.SimpleConstructionScript 做你的 SCS 构建：
+    // - 找/建 Root
+    // - 清空 Root 子节点
+    // - 为每个 CenterPoint 创建 StaticMeshComponent 节点
+    // 然后 CompileBlueprint / MarkPackageDirty / AssetRegistry.AssetCreated 之类
+
+    //// 1. 如果有旧资产，先卸载/销毁，避免部分加载
+    //UObject* ExistingObj = StaticFindObject(UObject::StaticClass(), /*Outer=*/nullptr, *PackageName);
+    //if (ExistingObj) {
+    //    UPackage* ExistingPackage = ExistingObj->GetOutermost();
+    //    if (ExistingPackage && ExistingPackage->IsFullyLoaded() == false) {
+    //        // 强制完全加载一次，避免 partial
+    //        ExistingPackage->FullyLoad();
+    //    }
+
+    //    // 这里简单粗暴：删除旧资产（你也可以选择在原资产上修改 SCS）
+    //    ExistingObj->ClearFlags(RF_Public | RF_Standalone);
+    //    ExistingObj->MarkAsGarbage();
+    //}
+
+    //// 2. 创建新的 Package
+    //UPackage* Package = CreatePackage(*PackageName);
+    //if (!Package) {
+    //    UE_LOG(LogTemp, Error, TEXT("Failed to create package %s"), *PackageName);
+    //    return nullptr;
+    //}
+    //Package->FullyLoad(); // 确保是 fully loaded
+
+    //// 3. 创建 Actor 蓝图
+    //UBlueprint* NewBP = FKismetEditorUtilities::CreateBlueprint(
+    //    AActor::StaticClass(),
+    //    Package,
+    //    *AssetName,
+    //    EBlueprintType::BPTYPE_Normal,
+    //    UBlueprint::StaticClass(),
+    //    UBlueprintGeneratedClass::StaticClass(),
+    //    FName("MyPlaneBlueprintCreation")
+    //);
 
     if (!NewBP || !NewBP->GeneratedClass) {
         UE_LOG(LogTemp, Error, TEXT("CreateBlueprint failed for %s"), *AssetName);
@@ -131,6 +170,10 @@ UBlueprint* UBFL_CreateBP::CreatePlanesBlueprint(const FString& AssetPath, const
     }
     else {
         RootNode = RootNodes[0];
+
+        if (USceneComponent* RootTemplate = Cast<USceneComponent>(RootNode->ComponentTemplate)) {
+            RootTemplate->SetMobility(EComponentMobility::Static);
+        }
     }
 
     // 4.2 清理旧的子节点（如果你打算复用同名 BP 的话）
@@ -153,6 +196,10 @@ UBlueprint* UBFL_CreateBP::CreatePlanesBlueprint(const FString& AssetPath, const
             PlaneTemplate->SetStaticMesh(TarMesh);
             PlaneTemplate->SetMobility(EComponentMobility::Static);
             PlaneTemplate->SetRelativeLocation(Loc);
+
+            if (TarMaterial) {
+                PlaneTemplate->SetMaterial(0, TarMaterial);
+            }
         }
     }
 
