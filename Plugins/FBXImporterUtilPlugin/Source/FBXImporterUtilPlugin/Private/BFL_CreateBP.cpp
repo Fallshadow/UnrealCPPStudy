@@ -24,19 +24,19 @@
 
 void UBFL_CreateBP::GeneratePlanesBlueprint(const FString& FBXPath, const FString& AssetPath, UStaticMesh* TarMesh, UMaterialInterface* TarMaterial)
 {
-    TArray<FParsedMeshData> meshArray = UFBXParserLibrary::ParseFBXFile(FBXPath);
+    TArray<FParsedMeshData_FFSLight> meshArray = UFBXParserLibrary::ParseLightFBX(FBXPath);
 
     for (int32 MeshIndex = 0; MeshIndex < meshArray.Num(); MeshIndex++) {
-        const FParsedMeshData& MeshData = meshArray[MeshIndex]; // 取当前网格数据（const&避免拷贝）
+        const FParsedMeshData_FFSLight& MeshData = meshArray[MeshIndex]; // 取当前网格数据（const&避免拷贝）
         //UBlueprint* NewBP = UBFL_CreateBP::CreatePlanesBlueprint(
         //    AssetPath + TEXT("_") + MeshData.MeshName, MeshData.CenterPoints, PlaneMesh
         //);
 
-        if (MeshData.MeshName == "RW15_EdgeLights") {
+        if (MeshData.Base.MeshName == "RW15_EdgeLights") {
             UE_LOG(LogTemp, Log, TEXT("===== 找到跑道 15 边灯 ====="));
 
             UBlueprint* NewBP = UBFL_CreateBP::CreatePlanesBlueprint(
-                AssetPath + TEXT("_") + MeshData.MeshName, MeshData.CenterPoints, TarMesh, TarMaterial
+                AssetPath + TEXT("_") + MeshData.Base.MeshName, MeshData.Base.CenterPoints, TarMesh, TarMaterial
             );
             break;
         }
@@ -74,9 +74,9 @@ UBlueprint* UBFL_CreateBP::CreatePlanesBlueprint(const FString& AssetPath, const
     }
 
     // PackageName 形如 "/Game/AutoBP/BP_Planes"
-// AssetName   形如 "BP_Planes"
+    // AssetName   形如 "BP_Planes"
 
-// 1. 创建或加载 Package
+    // 1. 创建或加载 Package
     UPackage* Package = FindPackage(nullptr, *PackageName);
     if (!Package) {
         Package = CreatePackage(*PackageName);
