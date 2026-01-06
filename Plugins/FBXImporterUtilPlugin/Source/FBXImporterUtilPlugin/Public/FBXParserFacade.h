@@ -12,15 +12,13 @@ public:
     FBXParserFacade();
     ~FBXParserFacade();
 
-    // Í¨ÓÃ½âÎö¡ª¡ªÄÚ²¿¿ÉÑ¡Ä¬ÈÏ½âÎöÆ÷
+    // é€šç”¨è§£æâ€”â€”å†…éƒ¨å¯é€‰é»˜è®¤è§£æå™¨
     TArray<FParsedMeshData> ParseGenericFBX(const FString& FBXFilePath);
 
-
-
-    // Õë¶ÔµÆ¹â FBX
+    // é’ˆå¯¹ç¯å…‰ FBX
     TArray<FParsedMeshData_FFSLight> ParseLightFBX(const FString& FBXFilePath);
 
-    // Õë¶ÔµÆ¹âÄ£ĞÍ FBX
+    // é’ˆå¯¹ç¯å…‰æ¨¡å‹ FBX
     TArray<FParsedMeshData_FFSLightModel> ParseLightModelFBX(const FString& FBXFilePath);
 
     bool WriteGenericFBXDataToJSON(const TArray<FParsedMeshData>& ParsedMeshData, const FString& ConfigFileName);
@@ -35,5 +33,5 @@ private:
     FbxManager* GetOrCreateManager();
     void DestroyManager();
 
-    static FbxManager* GFBXManagerInstance;  // ÓÉ Facade Í³Ò»¹ÜÀí
+    static FbxManager* GFBXManagerInstance;  // ç”± Facade ç»Ÿä¸€ç®¡ç†
 };

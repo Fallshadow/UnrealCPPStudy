@@ -7,6 +7,7 @@
 #include "Serialization/JsonSerializer.h"
 
 #include "CustomImportFBX/FFS/FFS_FBXLightParser.h"
+#include "CustomImportFBX/FFS/FFS_FBXLightModelParser.h"
 #include "CustomImportFBX/CustomFBXParser.h"
 
 FbxManager* FBXParserFacade::GFBXManagerInstance = nullptr;
@@ -331,7 +332,10 @@ TArray<FParsedMeshData_FFSLightModel> FBXParserFacade::ParseLightModelFBX(const 
     FbxImporter* Importer = nullptr;
     if (!CanParsed(FBXFilePath, Scene, Importer)) return Result;
 
-    // TODO
+    FFS_FBXLightModelParser* Parser = new FFS_FBXLightModelParser();
+    Parser->ParseFromScene(Scene, Result);
+    delete Parser;
 
+    DestroyFBX(Scene, Importer);
     return Result;
 }

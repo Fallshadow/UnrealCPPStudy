@@ -7,32 +7,32 @@
 
 
 // ======================
-// »ù´¡Íø¸ñÊı¾İ£¨ËùÓĞ FBX Í¨ÓÃ£©
+// åŸºç¡€ç½‘æ ¼æ•°æ®ï¼ˆæ‰€æœ‰ FBX é€šç”¨ï¼‰
 // ======================
 USTRUCT(BlueprintType)
 struct FParsedMeshData {
     GENERATED_BODY()
 
-    // ¶¥µãÊı×é£¨UE ×ø±êÏµ£ºZ ÖáÏòÉÏ£©
+    // é¡¶ç‚¹æ•°ç»„ï¼ˆUE åæ ‡ç³»ï¼šZ è½´å‘ä¸Šï¼‰
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
     TArray<FVector> Vertices;
 
-    // Î»ÖÃÊı×é£¨Ã¿¸ö Mesh µÄÖĞĞÄµã£¬×÷ÎªĞÂÉú³ÉÃæÆ¬µÄÎ»ÖÃ£©
+    // ä½ç½®æ•°ç»„ï¼ˆæ¯ä¸ª Mesh çš„ä¸­å¿ƒç‚¹ï¼Œä½œä¸ºæ–°ç”Ÿæˆé¢ç‰‡çš„ä½ç½®ï¼‰
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
     TArray<FVector> CenterPoints;
 
-    // Èı½ÇÃæË÷ÒıÊı×é£¨Ã¿ 3 ¸öÔªËØ×é³ÉÒ»¸öÈı½ÇÃæ£©
+    // ä¸‰è§’é¢ç´¢å¼•æ•°ç»„ï¼ˆæ¯ 3 ä¸ªå…ƒç´ ç»„æˆä¸€ä¸ªä¸‰è§’é¢ï¼‰
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
     TArray<int32> Triangles;
 
-    // Íø¸ñÃû³Æ£¨FBX ÖĞµÄ½ÚµãÃû³Æ£©
+    // ç½‘æ ¼åç§°ï¼ˆFBX ä¸­çš„èŠ‚ç‚¹åç§°ï¼‰
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
     FString MeshName;
 };
 
 
 // ======================
-// µÆ¹â FBX ×¨ÓÃµÄ½á¹¹
+// ç¯å…‰ FBX ä¸“ç”¨çš„ç»“æ„
 // ======================
 USTRUCT(BlueprintType)
 struct FParsedMeshData_FFSLight {
@@ -41,33 +41,33 @@ struct FParsedMeshData_FFSLight {
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
     FParsedMeshData Base;
 
-    // ÅÜµÀÃû³Æ£¨TODO£ºFBX ÖĞÊÇ string ÀàĞÍ£¬ÊÇ·ñĞèÒª±ä³É int£©
+    // è·‘é“åç§°ï¼ˆTODOï¼šFBX ä¸­æ˜¯ string ç±»å‹ï¼Œæ˜¯å¦éœ€è¦å˜æˆ intï¼‰
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser|FFS|Light")
     FString RwyNum;
 
-    // µÆ¹âÀàĞÍ
+    // ç¯å…‰ç±»å‹
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser|FFS|Light")
     int32 LightType = 0;
 
-    // VerticalAngle ºÍ HorizontalAngle
+    // VerticalAngle å’Œ HorizontalAngle
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser|FFS|Light")
     FVector2D Angle = FVector2D::ZeroVector;
 
-    // µÆ¹â·½ÏòÀàĞÍ
+    // ç¯å…‰æ–¹å‘ç±»å‹
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser|FFS|Light")
     int32 Directional = 0;
 
-    // ÉÁË¸ÆµÂÊ
+    // é—ªçƒé¢‘ç‡
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser|FFS|Light")
     int32 Freq = 0;
 
     void PrintCustomPropsOnly() const
     {
         FString CustomStr = FString::Printf(
-            TEXT("=== Íø¸ñ¡¾%s¡¿×Ô¶¨ÒåÊôĞÔ ===\n")
-            TEXT("ÅÜµÀºÅ£º%s | µÆ¹âÀàĞÍ£º%d\n")
-            TEXT("´¹Ö±½Ç¶È£º%.2f | Ë®Æ½½Ç¶È£º%.2f\n")
-            TEXT("µÆ¹â·½ÏòÀàĞÍ£º%d | ÉÁË¸ÆµÂÊ£º%d"),
+            TEXT("=== ç½‘æ ¼ã€%sã€‘è‡ªå®šä¹‰å±æ€§ ===\n")
+            TEXT("è·‘é“å·ï¼š%s | ç¯å…‰ç±»å‹ï¼š%d\n")
+            TEXT("å‚ç›´è§’åº¦ï¼š%.2f | æ°´å¹³è§’åº¦ï¼š%.2f\n")
+            TEXT("ç¯å…‰æ–¹å‘ç±»å‹ï¼š%d | é—ªçƒé¢‘ç‡ï¼š%d"),
             *Base.MeshName,
             *RwyNum,
             LightType,
@@ -76,13 +76,13 @@ struct FParsedMeshData_FFSLight {
             Directional,
             Freq
         );
-        UE_LOG(LogTemp, Warning, TEXT("%s"), *CustomStr); // Warning¼¶±ğ£¬ÈÕÖ¾ÖĞ¸üĞÑÄ¿
+        UE_LOG(LogTemp, Warning, TEXT("%s"), *CustomStr); // Warningçº§åˆ«ï¼Œæ—¥å¿—ä¸­æ›´é†’ç›®
     }
 };
 
 
 // ======================
-// µÆ¹âÄ£ĞÍ FBX ×¨ÓÃµÄ½á¹¹
+// ç¯å…‰æ¨¡å‹ FBX ä¸“ç”¨çš„ç»“æ„
 // ======================
 USTRUCT(BlueprintType)
 struct FParsedMeshData_FFSLightModel {
@@ -91,18 +91,24 @@ struct FParsedMeshData_FFSLightModel {
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
     FParsedMeshData Base;
 
-    // ±äÌå±àºÅ
+    UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
+    TArray<FVector> Scale;
+
+    UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
+    TArray<FVector> Rotation;
+
+    // å˜ä½“ç¼–å·
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser|FFS|Light")
     int Variant;
 
     void PrintCustomPropsOnly() const
     {
         FString CustomStr = FString::Printf(
-            TEXT("=== Íø¸ñ¡¾%s¡¿×Ô¶¨ÒåÊôĞÔ ===\n")
-            TEXT("±äÌå±àºÅ£º%d\n"),
+            TEXT("=== ç½‘æ ¼ã€%sã€‘è‡ªå®šä¹‰å±æ€§ ===\n")
+            TEXT("å˜ä½“ç¼–å·ï¼š%d\n"),
             *Base.MeshName,
             Variant
         );
-        UE_LOG(LogTemp, Warning, TEXT("%s"), *CustomStr); // Warning¼¶±ğ£¬ÈÕÖ¾ÖĞ¸üĞÑÄ¿
+        UE_LOG(LogTemp, Warning, TEXT("%s"), *CustomStr); // Warningçº§åˆ«ï¼Œæ—¥å¿—ä¸­æ›´é†’ç›®
     }
 };
