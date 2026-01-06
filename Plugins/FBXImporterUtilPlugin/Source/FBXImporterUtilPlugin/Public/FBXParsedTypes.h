@@ -92,12 +92,6 @@ struct FParsedMeshData_FFSLightModel {
     FParsedMeshData Base;
 
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
-    TArray<FVector> Scale;
-
-    UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
-    TArray<FVector> Rotation;
-
-    UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
     TArray<FLinearColor> VertexColors;
 
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
@@ -114,6 +108,9 @@ struct FParsedMeshData_FFSLightModel {
 
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
     TArray<FQuat>   OutRotations;
+
+    UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
+    TArray<FVector> Scale;
 
     // 变体编号
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser|FFS|Light")

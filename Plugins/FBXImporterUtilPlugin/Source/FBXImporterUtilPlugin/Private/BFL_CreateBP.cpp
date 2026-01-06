@@ -21,6 +21,19 @@
 #endif // WITH_EDITOR
 
 
+UStaticMesh* LoadStaticMesh_Editor(const FString& MeshPath)
+{
+    if (MeshPath.IsEmpty()) {
+        return nullptr;
+    }
+
+    // 直接使用从“Copy Reference”复制来的完整路径
+    FSoftObjectPath SoftPath(MeshPath);
+    UObject* LoadedObj = SoftPath.TryLoad();   // 同步加载（编辑器环境可用）
+
+    return Cast<UStaticMesh>(LoadedObj);
+}
+
 
 void UBFL_CreateBP::GenerateTarBlueprint(const FString& FBXPath, const FString& AssetPath, UStaticMesh* TarMesh, UMaterialInterface* TarMaterial)
 {
@@ -53,21 +66,25 @@ void UBFL_CreateBP::GenerateRunWay15LightBlueprint(const FString& FBXPath, const
     }
 }
 
-void UBFL_CreateBP::GenerateRunWay15LightModelBlueprint(const FString& FBXPath, const FString& AssetPath, UMaterialInterface* TarMaterial)
+void UBFL_CreateBP::GenerateRunWay15LightModelBlueprint(const FString& FBXPath, const FString& AssetPath)
 {
+    // Model 一般来说就一个 Mesh
     TArray<FParsedMeshData_FFSLightModel> meshArray = UFBXParserLibrary::ParseLightModelFBX(FBXPath);
 
     for (int32 MeshIndex = 0; MeshIndex < meshArray.Num(); MeshIndex++) {
         const FParsedMeshData_FFSLightModel& MeshData = meshArray[MeshIndex];
 
-        //if (MeshData.Base.MeshName == "RW15_EdgeLights") {
-        //    UE_LOG(LogTemp, Log, TEXT("===== 找到跑道 15 边灯 ====="));
+        for (int variant : MeshData.Variants) {
+            // 先只弄边灯模型
+            if (variant == 2) { 
+                // AssetPath : /Game/Meshes/MyMesh.MyMesh
+                const FString FullPath = FString::Printf(TEXT("/Script/Engine.StaticMesh'%s'"), *AssetPath);
+                if (UStaticMesh* Mesh = LoadStaticMesh_Editor(FullPath)) {
+                    
+                }
 
-        //    UBlueprint* NewBP = UBFL_CreateBP::CreateTarModelBlueprint(
-        //        AssetPath + TEXT("_") + MeshData.Base.MeshName, MeshData.Base.CenterPoints, TarMaterial
-        //    );
-        //    break;
-        //}
+            }
+        }
     }
 }
 
