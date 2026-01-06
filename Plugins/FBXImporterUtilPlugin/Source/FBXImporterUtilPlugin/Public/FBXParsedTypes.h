@@ -109,18 +109,13 @@ struct FParsedMeshData_FFSLightModel {
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
     TArray<FVector2D> UVs2;
 
+    UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
+    TArray<FVector> OutPositions;
+
+    UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
+    TArray<FQuat>   OutRotations;
+
     // 变体编号
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser|FFS|Light")
-    int Variant;
-
-    void PrintCustomPropsOnly() const
-    {
-        FString CustomStr = FString::Printf(
-            TEXT("=== 网格【%s】自定义属性 ===\n")
-            TEXT("变体编号：%d\n"),
-            *Base.MeshName,
-            Variant
-        );
-        UE_LOG(LogTemp, Warning, TEXT("%s"), *CustomStr); // Warning级别，日志中更醒目
-    }
+    TArray<int> Variants;
 };

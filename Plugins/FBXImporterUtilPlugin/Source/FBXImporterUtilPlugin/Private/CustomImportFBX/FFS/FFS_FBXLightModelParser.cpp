@@ -118,6 +118,56 @@ static void ExtractUVLayer(FbxMesh* FBXMesh, int32 UVLayerIndex, TArray<FVector2
     }
 }
 
+void BuildTransformsFromData(
+    const TArray<FLinearColor>& VertexColors,
+    const TArray<FVector2D>& UVs0,
+    const TArray<FVector2D>& UVs1,
+    const TArray<FVector2D>& UVs2,
+    TArray<FVector>& OutPositions,
+    TArray<FQuat>& OutRotations
+)
+{
+    OutPositions.Reset();
+    OutRotations.Reset();
+
+    const int32 Count = VertexColors.Num();
+    if (Count == 0) return;
+
+    const int32 SafeCount = FMath::Min(
+        FMath::Min(VertexColors.Num(), UVs0.Num()),
+        FMath::Min(UVs1.Num(), UVs2.Num())
+    );
+
+    OutPositions.Reserve(SafeCount);
+    OutRotations.Reserve(SafeCount);
+
+    for (int32 i = 0; i < SafeCount; ++i) {
+        const FLinearColor& Col = VertexColors[i];
+        const FVector2D& U0 = UVs0[i];
+        const FVector2D& U1 = UVs1[i];
+        const FVector2D& U2 = UVs2[i];
+
+        // rotation = Quaternion(vertex.RawColor.z, -vertex.UVs[0].x, vertex.UVs[0].y, vertex.UVs[1].x);
+        FQuat Rot(
+            Col.B,    // x = RawColor.z
+            -U0.X,    // y = -UV0.x
+            U0.Y,     // z = UV0.y
+            U1.X      // w = UV1.x
+        );
+        Rot.Normalize();
+
+        // translation = Float3(vertex.UVs[1].y, vertex.UVs[2].x, -vertex.UVs[2].y);
+        FVector Pos(
+            U1.Y,     // X
+            U2.X,     // Y
+            -U2.Y     // Z
+        );
+
+        OutRotations.Add(Rot);
+        OutPositions.Add(Pos);
+    }
+}
+
 FParsedMeshData_FFSLightModel FFS_FBXLightModelParser::ParseSingleFBXMeshBase(FbxNode* FBXNode)
 {
     FParsedMeshData_FFSLightModel ParsedBase;
@@ -155,6 +205,8 @@ FParsedMeshData_FFSLightModel FFS_FBXLightModelParser::ParseSingleFBXMeshBase(Fb
 
     ParsedBase.VertexColors.Reset();
     ParsedBase.VertexColors.Reserve(PolygonCount); // 仅四边形
+    ParsedBase.Variants.Reset();
+    ParsedBase.Variants.Reserve(PolygonCount); 
 
 
     auto GetColorByIndex = [&](int32 ColorIndex) -> FLinearColor
@@ -217,11 +269,15 @@ FParsedMeshData_FFSLightModel FFS_FBXLightModelParser::ParseSingleFBXMeshBase(Fb
         const int32 VertCount = FBXMesh->GetPolygonSize(PolyIdx);
         FLinearColor Col = GetColor(PolyIdx, 0);
         ParsedBase.VertexColors.Add(Col);
+
+        ParsedBase.Variants.Add(Col.G);
     }
 
     ExtractUVLayer(FBXMesh, 0, ParsedBase.UVs0);
     ExtractUVLayer(FBXMesh, 1, ParsedBase.UVs1);
     ExtractUVLayer(FBXMesh, 2, ParsedBase.UVs2);
+
+    BuildTransformsFromData(ParsedBase.VertexColors, ParsedBase.UVs0, ParsedBase.UVs1, ParsedBase.UVs2, ParsedBase.OutPositions, ParsedBase.OutRotations);
 
     ParseFbxNodeProperties(FBXNode, ParsedBase);
 
