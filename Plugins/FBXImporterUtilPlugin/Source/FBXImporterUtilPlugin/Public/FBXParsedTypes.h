@@ -97,6 +97,18 @@ struct FParsedMeshData_FFSLightModel {
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
     TArray<FVector> Rotation;
 
+    UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
+    TArray<FLinearColor> VertexColors;
+
+    UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
+    TArray<FVector2D> UVs0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
+    TArray<FVector2D> UVs1;
+
+    UPROPERTY(BlueprintReadWrite, Category = "FBX Parser")
+    TArray<FVector2D> UVs2;
+
     // 变体编号
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser|FFS|Light")
     int Variant;

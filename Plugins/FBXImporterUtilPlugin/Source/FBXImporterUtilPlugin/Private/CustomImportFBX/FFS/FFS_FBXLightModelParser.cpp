@@ -40,6 +40,84 @@ void FFS_FBXLightModelParser::ParseFromScene(FbxScene* Scene, TArray<FParsedMesh
     TraverseFBXNodes(Scene->GetRootNode(), TraverseFBXNodes);
 }
 
+static void ExtractUVLayer(FbxMesh* FBXMesh, int32 UVLayerIndex, TArray<FVector2D>& OutUVs)
+{
+    if (!FBXMesh) return;
+
+    FbxLayerElementUV* UVElem = FBXMesh->GetElementUV(UVLayerIndex);
+    if (!UVElem) {
+        // 某些模型可能没有这么多层，直接跳过即可
+        return;
+    }
+
+    const int32 PolygonCount = FBXMesh->GetPolygonCount();
+    if (PolygonCount <= 0) {
+        return;
+    }
+
+    const auto MappingMode = UVElem->GetMappingMode();
+    const auto RefMode = UVElem->GetReferenceMode();
+
+    const FbxLayerElementArrayTemplate<FbxVector2>& DirectArray = UVElem->GetDirectArray();
+    const FbxLayerElementArrayTemplate<int>& IndexArray = UVElem->GetIndexArray();
+
+    OutUVs.Reset();
+    // 这里是四边形
+    OutUVs.Reserve(PolygonCount);
+
+    auto GetUVByIndex = [&](int32 UVIndex) -> FVector2D
+        {
+            if (UVIndex < 0 || UVIndex >= DirectArray.GetCount()) {
+                return FVector2D::ZeroVector;
+            }
+            const FbxVector2& UV = DirectArray.GetAt(UVIndex);
+            return FVector2D(
+                static_cast<float>(UV[0]),
+                static_cast<float>(UV[1])
+            );
+        };
+
+    int32 GlobalUVIndex = 0; // 专供 eByPolygonVertex 使用
+
+    for (int32 PolyIdx = 0; PolyIdx < PolygonCount; ++PolyIdx) {
+        const int32 VertCount = FBXMesh->GetPolygonSize(PolyIdx);
+
+        GlobalUVIndex = PolyIdx * 4;
+        
+        int32 UVIndex = 0;
+
+        if (MappingMode == FbxLayerElement::eByPolygonVertex) {
+            if (RefMode == FbxLayerElement::eDirect) {
+                UVIndex = GlobalUVIndex;
+            }
+            else if (RefMode == FbxLayerElement::eIndexToDirect) {
+                if (GlobalUVIndex >= 0 && GlobalUVIndex < IndexArray.GetCount()) {
+                    UVIndex = IndexArray.GetAt(GlobalUVIndex);
+                }
+            }
+        }
+        else if (MappingMode == FbxLayerElement::eByControlPoint) {
+            const int32 CtrlPointIndex = FBXMesh->GetPolygonVertex(PolyIdx, 0);
+
+            if (RefMode == FbxLayerElement::eDirect) {
+                UVIndex = CtrlPointIndex;
+            }
+            else if (RefMode == FbxLayerElement::eIndexToDirect) {
+                if (CtrlPointIndex >= 0 && CtrlPointIndex < IndexArray.GetCount()) {
+                    UVIndex = IndexArray.GetAt(CtrlPointIndex);
+                }
+            }
+        }
+        else {
+            // 其他 MappingMode 不处理
+            OutUVs.Add(FVector2D::ZeroVector);
+            continue;
+        }
+
+        OutUVs.Add(GetUVByIndex(UVIndex));
+    }
+}
+
 FParsedMeshData_FFSLightModel FFS_FBXLightModelParser::ParseSingleFBXMeshBase(FbxNode* FBXNode)
 {
     FParsedMeshData_FFSLightModel ParsedBase;
@@ -70,22 +148,21 @@ FParsedMeshData_FFSLightModel FFS_FBXLightModelParser::ParseSingleFBXMeshBase(Fb
     FbxLayerElement::EMappingMode MappingMode = VertexColorElem->GetMappingMode();
     FbxLayerElement::EReferenceMode RefMode = VertexColorElem->GetReferenceMode();
 
-    const FbxLayerElementArrayTemplate<FbxColor>& DirectArray = VertexColorElem->GetDirectArray();
-    const FbxLayerElementArrayTemplate<int>& IndexArray = VertexColorElem->GetIndexArray();
+    const FbxLayerElementArrayTemplate<FbxColor>& ColorDirectArray = VertexColorElem->GetDirectArray();
+    const FbxLayerElementArrayTemplate<int>& ColorIndexArray = VertexColorElem->GetIndexArray();
 
     const int32 PolygonCount = FBXMesh->GetPolygonCount();
 
-    TArray<FLinearColor> VertexColors;
-    VertexColors.Reset();
-    VertexColors.Reserve(PolygonCount * 4); // 仅四边形
+    ParsedBase.VertexColors.Reset();
+    ParsedBase.VertexColors.Reserve(PolygonCount); // 仅四边形
 
 
     auto GetColorByIndex = [&](int32 ColorIndex) -> FLinearColor
         {
-            if (ColorIndex < 0 || ColorIndex >= DirectArray.GetCount()) {
+            if (ColorIndex < 0 || ColorIndex >= ColorDirectArray.GetCount()) {
                 return FLinearColor::White;
             }
-            const FbxColor& C = DirectArray.GetAt(ColorIndex);
+            const FbxColor& C = ColorDirectArray.GetAt(ColorIndex);
             return FLinearColor(
                 static_cast<float>(C.mRed),
                 static_cast<float>(C.mGreen),
@@ -108,8 +185,8 @@ FParsedMeshData_FFSLightModel FFS_FBXLightModelParser::ParseSingleFBXMeshBase(Fb
                         ColorIndex = CtrlPointIndex;
                     }
                     else if (RefMode == FbxLayerElement::eIndexToDirect) {
-                        if (CtrlPointIndex >= 0 && CtrlPointIndex < IndexArray.GetCount()) {
-                            ColorIndex = IndexArray.GetAt(CtrlPointIndex);
+                        if (CtrlPointIndex >= 0 && CtrlPointIndex < ColorIndexArray.GetCount()) {
+                            ColorIndex = ColorIndexArray.GetAt(CtrlPointIndex);
                         }
                     }
                 }
@@ -121,8 +198,8 @@ FParsedMeshData_FFSLightModel FFS_FBXLightModelParser::ParseSingleFBXMeshBase(Fb
                         ColorIndex = GlobalVertexIndex;
                     }
                     else if (RefMode == FbxLayerElement::eIndexToDirect) {
-                        if (GlobalVertexIndex >= 0 && GlobalVertexIndex < IndexArray.GetCount()) {
-                            ColorIndex = IndexArray.GetAt(GlobalVertexIndex);
+                        if (GlobalVertexIndex >= 0 && GlobalVertexIndex < ColorIndexArray.GetCount()) {
+                            ColorIndex = ColorIndexArray.GetAt(GlobalVertexIndex);
                         }
                     }
                 }
@@ -135,14 +212,16 @@ FParsedMeshData_FFSLightModel FFS_FBXLightModelParser::ParseSingleFBXMeshBase(Fb
             return GetColorByIndex(ColorIndex);
         };
 
-    // 遍历每个面、每个多边形顶点
+    // 都是四边形，选择第一个点的信息存储就好
     for (int32 PolyIdx = 0; PolyIdx < PolygonCount; ++PolyIdx) {
         const int32 VertCount = FBXMesh->GetPolygonSize(PolyIdx);
-        for (int32 VertInPoly = 0; VertInPoly < VertCount; ++VertInPoly) {
-            FLinearColor Col = GetColor(PolyIdx, VertInPoly);
-            VertexColors.Add(Col);
-        }
+        FLinearColor Col = GetColor(PolyIdx, 0);
+        ParsedBase.VertexColors.Add(Col);
     }
+
+    ExtractUVLayer(FBXMesh, 0, ParsedBase.UVs0);
+    ExtractUVLayer(FBXMesh, 1, ParsedBase.UVs1);
+    ExtractUVLayer(FBXMesh, 2, ParsedBase.UVs2);
 
     ParseFbxNodeProperties(FBXNode, ParsedBase);
 
