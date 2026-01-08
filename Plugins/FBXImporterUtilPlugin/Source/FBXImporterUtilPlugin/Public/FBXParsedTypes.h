@@ -116,3 +116,27 @@ struct FParsedMeshData_FFSLightModel {
     UPROPERTY(BlueprintReadWrite, Category = "FBX Parser|FFS|Light")
     TArray<int> Variants;
 };
+
+UENUM(BlueprintType)
+enum class EFFS_FoliageModelType : uint8 {
+    Trees,
+    Grass,
+    LightModel,
+    LightPole,
+    Jetway,
+};
+
+USTRUCT(BlueprintType)
+struct FFFS_FoliageModel : public FTableRowBase {
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    EFFS_FoliageModelType ModelType = EFFS_FoliageModelType::LightModel;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int Variant;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FString StaticMeshPath;
+};

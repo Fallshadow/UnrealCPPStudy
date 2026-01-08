@@ -29,7 +29,7 @@ void FFS_FBXLightModelParser::ParseFromScene(FbxScene* Scene, TArray<FParsedMesh
         {
             if (!Node) return;
             FParsedMeshData_FFSLightModel MeshData = ParseSingleFBXMeshBase(Node);
-            if (MeshData.Base.Vertices.Num() > 0) {
+            if (MeshData.Variants.Num() > 0) {
                 OutMeshes.Add(MeshData);
             }
             for (int32 i = 0; i < Node->GetChildCount(); i++) {

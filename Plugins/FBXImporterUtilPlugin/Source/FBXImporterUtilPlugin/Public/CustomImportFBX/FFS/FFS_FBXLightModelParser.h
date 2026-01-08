@@ -2,9 +2,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 #include "../../FBXParsedTypes.h"
 #include "fbxsdk.h"
-
 
 class FFS_FBXLightModelParser {
 public:
