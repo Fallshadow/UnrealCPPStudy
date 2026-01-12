@@ -177,7 +177,7 @@ UBlueprint* UBFL_CreateBP::CreateTarBlueprint(const FString& AssetPath, const TA
         return nullptr;
     }
 
-    // 4.1 Root 节点
+    // Root 节点
     USCS_Node* RootNode = nullptr;
     const TArray<USCS_Node*>& RootNodes = SCS->GetRootNodes();
     if (RootNodes.Num() == 0) {
@@ -196,15 +196,13 @@ UBlueprint* UBFL_CreateBP::CreateTarBlueprint(const FString& AssetPath, const TA
         }
     }
 
-    // 4.2 清理旧的子节点（如果你打算复用同名 BP 的话）
-    {
-        TArray<USCS_Node*> Children = RootNode->ChildNodes;
-        for (USCS_Node* Child : Children) {
-            SCS->RemoveNodeAndPromoteChildren(Child);
-        }
+    // 清理旧的子节点（如果你打算复用同名 BP 的话）
+    TArray<USCS_Node*> Children = RootNode->ChildNodes;
+    for (USCS_Node* Child : Children) {
+        SCS->RemoveNodeAndPromoteChildren(Child);
     }
 
-    // 4.3 为每个 CenterPoint 创建一个 StaticMeshComponent 节点
+    // 为每个 CenterPoint 创建一个 StaticMeshComponent 节点
     for (int32 i = 0; i < CreatePoints.Num(); ++i) {
         const FVector& Loc = CreatePoints[i];
         const FString CompName = FString::Printf(TEXT("Plane_%d"), i);
@@ -223,10 +221,10 @@ UBlueprint* UBFL_CreateBP::CreateTarBlueprint(const FString& AssetPath, const TA
         }
     }
 
-    // 5. 编译蓝图，确保 Class/CDO 完整
+    // 编译蓝图，确保 Class/CDO 完整
     FKismetEditorUtilities::CompileBlueprint(NewBP);
 
-    // 6. 标记 & 通知 AssetRegistry
+    // 标记 & 通知 AssetRegistry
     NewBP->MarkPackageDirty();
     Package->MarkPackageDirty();
 
@@ -385,10 +383,16 @@ UBlueprint* UBFL_CreateBP::CreateTarModelBlueprint(const FString& PackageName, U
             // X = UVs[1].y
             // Y = UVs[2].x  换到 Z
             // Z = -UVs[2].y 换到 Y
+            //FVector Pos(
+            //    modelMesh.UVs1[i].Y,        
+            //    -modelMesh.UVs2[i].Y,
+            //    modelMesh.UVs2[i].X 
+            //);
+            // 完全不懂为什么这里需要把原来的 xyz 变成 zxy
             FVector Pos(
-                modelMesh.UVs1[i].Y,        
                 -modelMesh.UVs2[i].Y,
-                modelMesh.UVs2[i].X 
+                modelMesh.UVs1[i].Y,
+                modelMesh.UVs2[i].X
             );
 
             PlaneTemplate->SetRelativeRotation(RotB);
