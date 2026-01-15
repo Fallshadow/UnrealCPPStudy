@@ -17,6 +17,8 @@
 #include "Engine/SCS_Node.h"
 #include "FBXParserLibrary.h"
 #include "Editor.h"
+#include "Components/HierarchicalInstancedStaticMeshComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
 
 #endif // WITH_EDITOR
 
@@ -342,6 +344,26 @@ UBlueprint* UBFL_CreateBP::CreateTarModelBlueprint(const FString& PackageName, U
         SCS->RemoveNodeAndPromoteChildren(Child);
     }
 
+    USCS_Node* HISMNode = SCS->CreateNode(UHierarchicalInstancedStaticMeshComponent::StaticClass(), TEXT("HISM_Models"));
+    RootNode->AddChildNode(HISMNode);
+    UHierarchicalInstancedStaticMeshComponent* HISMTemplate = Cast<UHierarchicalInstancedStaticMeshComponent>(HISMNode->ComponentTemplate);
+
+    if (!HISMTemplate) {
+        UE_LOG(LogTemp, Error, TEXT("Failed to create HISM template for %s"), *AssetName);
+        return nullptr;
+    }
+
+    HISMTemplate->SetMobility(EComponentMobility::Static);
+    HISMTemplate->SetStaticMesh(TarMesh);
+
+    // 如果需要，设置碰撞、LOD、InstanceStartCullDistance 等等
+    // HISMTemplate->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    // HISMTemplate->InstanceStartCullDistance = ...;
+    // HISMTemplate->InstanceEndCullDistance   = ...;
+
+    // 清空原有实例数据
+    HISMTemplate->PerInstanceSMData.Empty();
+
     int meshNumber = 0;
 
     // 为每个 指定变体 创建一个 StaticMeshComponent 节点
@@ -351,33 +373,25 @@ UBlueprint* UBFL_CreateBP::CreateTarModelBlueprint(const FString& PackageName, U
         }
         meshNumber++;
 
-        const FString CompName = FString::Printf(TEXT("Model_%d"), meshNumber);
+        FQuat RotA(
+            modelMesh.VertexColors[i].B,    // x = RawColor.z
+            -modelMesh.UVs0[i].X,           // y = -UVs[0].x
+            modelMesh.UVs0[i].Y,            // z = UVs[0].y
+            modelMesh.UVs1[i].X             // w = UVs[1].x
+        );
 
-        USCS_Node* MeshNode = SCS->CreateNode(UStaticMeshComponent::StaticClass(), *CompName);
-        RootNode->AddChildNode(MeshNode);
+        // 坐标系 A -> B 的基变换：绕 X 轴 -90°
+        const FQuat Q_R(
+            -0.70710678f,  // X = sin(-45°)
+            0.0f,          // Y
+            0.0f,          // Z
+            0.70710678f    // W = cos(-45°)
+        );
 
-        if (UStaticMeshComponent* PlaneTemplate = Cast<UStaticMeshComponent>(MeshNode->ComponentTemplate)) {
-            PlaneTemplate->SetMobility(EComponentMobility::Static);
-            PlaneTemplate->SetStaticMesh(TarMesh);
-            FQuat RotA(
-                modelMesh.VertexColors[i].B,    // x = RawColor.z
-                -modelMesh.UVs0[i].X,           // y = -UVs[0].x
-                modelMesh.UVs0[i].Y,            // z = UVs[0].y
-                modelMesh.UVs1[i].X             // w = UVs[1].x
-            );
+        FQuat RotB = Q_R * RotA * Q_R.Inverse();
+        RotB.Normalize();
 
-            // 坐标系 A -> B 的基变换：绕 X 轴 -90°
-            const FQuat Q_R(
-                -0.70710678f,  // X = sin(-45°)
-                0.0f,          // Y
-                0.0f,          // Z
-                0.70710678f    // W = cos(-45°)
-            );
-
-            FQuat RotB = Q_R * RotA * Q_R.Inverse();
-            RotB.Normalize();
-
-            // 循环遍历每个 FBX 顶点，核心是坐标系转换
+        // 循环遍历每个 FBX 顶点，核心是坐标系转换
             // FBX 坐标系：Y 轴向上（X: 右，Y: 上，Z: 前）；
             // UE 坐标系：Z 轴向上（X: 右，Y: 前，Z: 上）；
             // X = UVs[1].y
@@ -389,16 +403,24 @@ UBlueprint* UBFL_CreateBP::CreateTarModelBlueprint(const FString& PackageName, U
             //    modelMesh.UVs2[i].X 
             //);
             // 完全不懂为什么这里需要把原来的 xyz 变成 zxy
-            FVector Pos(
-                -modelMesh.UVs2[i].Y,
-                modelMesh.UVs1[i].Y,
-                modelMesh.UVs2[i].X
-            );
+        FVector Pos(
+            -modelMesh.UVs2[i].Y,
+            modelMesh.UVs1[i].Y,
+            modelMesh.UVs2[i].X
+        );
 
-            PlaneTemplate->SetRelativeRotation(RotB);
-            PlaneTemplate->SetRelativeLocation(Pos);
-        }
+        const FTransform InstanceTransform(RotB, Pos, FVector::OneVector);
+
+        FInstancedStaticMeshInstanceData InstanceData;
+        InstanceData.Transform = InstanceTransform.ToMatrixWithScale();
+
+        HISMTemplate->PerInstanceSMData.Add(InstanceData);
     }
+
+    // 标记 HISM 需要重建层级树
+    HISMTemplate->NumCustomDataFloats = 0; // 如果你没有用自定义数据，可以留 0
+    HISMTemplate->BuildTreeIfOutdated(true, true);
+    HISMTemplate->MarkRenderStateDirty();
 
     // 编译蓝图，确保 Class/CDO 完整
     FKismetEditorUtilities::CompileBlueprint(NewBP);
