@@ -28,6 +28,14 @@
 		{
 			"Name": "SunPosition",
 			"Enabled": true
+		},
+		{
+			"Name": "Fab",
+			"Enabled": false
+		},
+		{
+			"Name": "EOSShared",
+			"Enabled": true
 		}
 	]
 }

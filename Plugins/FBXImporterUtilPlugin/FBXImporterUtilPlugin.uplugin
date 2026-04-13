@@ -16,7 +16,7 @@
 	"Modules": [
 		{
 			"Name": "FBXImporterUtilPlugin",
-			"Type": "Runtime",
+			"Type": "Editor",
 			"LoadingPhase": "Default",
 			"PlatformAllowList": [
 				"Win64"
